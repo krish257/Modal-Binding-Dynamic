@@ -1,0 +1,182 @@
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="myForm">
+                        <input type="text" id="Name" value="">
+                        <input type="email" id="Email" value="">
+                        <input type="text" id="Address_Street" value="">
+                        <input type="text" id="Address_City" value="">
+                        <input type="text" id="Address_State" value="">
+                        <input type="text" id="Address_Zip" value="">
+                        <textarea id="editor" name="content" class="form-control"></textarea>
+                    </form>
+                    <form id="myForm2">
+                        <input type="text" id="Name2" value="">
+                        <input type="email" id="Email" value="">
+                        <input type="text" id="Address_Street" value="">
+                        <input type="text" id="Address_City" value="">
+                        <input type="text" id="Address_State" value="">
+                        <input type="text" id="Address_Zip" value="">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="close btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" id="saveButton" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    $(document).ready(function () {
+        var editor = CKEDITOR.replace('editor');
+    var datajson = {
+        "Name": "John Doe",
+        "editor": "test Desc",
+    "Email": "john.doe@example.com",
+    "Address": {
+      "Street": "123 Main St",
+      "City": "Anytown",
+      "State": "CA",
+      "Zip": "12345"
+    }
+    };
+      $('#Modalbutton').on('click', function (e) {
+          bindDataToForm(e,datajson);
+        ShowModal(e,true);
+    });
+
+    // Hide modal popup
+    $('.close').on('click', function (e) {
+        ShowModal(e,false);
+    });
+    $('#saveButton').on('click', function (e) {
+        GetFormValue(e);
+        // Send jsonData to server using AJAX
+    });
+    });
+
+    function GetFormValue(e){
+        e.preventDefault();
+        var formData = {};
+        var formId=e.currentTarget.offsetParent.children[1].children[0].id;
+        var form = document.getElementById(formId);
+        Array.from(form.elements).forEach(function (field) {
+            var fieldName = field.id;
+            var fieldValue = field.value;
+            if (fieldName.indexOf('_') !== -1) {
+                var nestedFieldName = fieldName.split('_')[0];
+                if (!formData[nestedFieldName]) {
+                    formData[nestedFieldName] = {};
+                }
+                formData[nestedFieldName][fieldName.split('_')[1]] = fieldValue;
+            } else {
+                formData[fieldName] = fieldValue;
+            }
+        });
+        var jsonData = JSON.stringify(formData);
+        console.log(jsonData);
+    }
+
+    function ShowModal(e,mode){
+        e.preventDefault();
+        var view=mode==true?'show':'hide';
+        if(mode){
+        var modalId = $(e.currentTarget).attr("data-target");
+        $(modalId).modal(view);
+        }
+        else{
+            var modalid=$(e.currentTarget).parents(".modal").attr("id");
+            $('#'+modalid).modal(view);
+            clearValues(e);
+        }
+    }
+
+    function clearValues(e){
+        let formId= e.currentTarget.offsetParent.children[1].children[0].id;
+    let formElements = document.querySelectorAll("#" + formId + " input, #" + formId + " textarea, #" + formId + " select");
+    formElements.forEach(function(element) {
+      element.value = "";
+    });
+    }
+
+    function bindDataToForm1(e, data) {
+            var formId=e.currentTarget.parentNode.querySelector('form').id; // if the page have only one form! it's working
+            const form = document.getElementById(formId);
+            // Ensure the form exists
+            if (!form) {
+                console.error('Form with id "' + formId + '" not found.');
+                return;
+            }
+
+            // Loop through each property of the data object
+            for (const property in data) {
+                // Find the input element by id inside the specific form
+                const input = form.querySelector(`#${property}`);
+            if (data[property] != null || data[property] != undefined) {
+                // If it's an input element
+                if (input && input.tagName === 'INPUT') {
+                    input.value = data[property];  // Set the value for <input> fields
+                }
+
+                // If it's a select element
+                else if (input && input.tagName === 'SELECT') {
+                    input.value = data[property];  // Set the value for <select> elements
+                }
+
+                // If it's a textarea element
+                else if (input && input.tagName === 'TEXTAREA') {
+                    input.value = data[property];  // Set the value for <textarea> elements
+
+                    // If using CKEditor, set the value using CKEditor API
+                    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[property]) {
+                        CKEDITOR.instances[property].setData(data[property].toString());
+                    }
+                }
+                }
+            }
+        }
+            
+    function bindDataToForm(e, data) {
+        //var formId = "myForm";
+        var formId = e.currentTarget.parentNode.querySelector('form').id;  // if the page have only one form! it's working
+        const form = document.getElementById(formId);
+
+        if (!form) {
+            console.error('Form with id "' + formId + '" not found.');
+            return;
+        }
+
+        function bindData(inputId, value) {
+            const input = form.querySelector(`#${inputId}`);
+
+            if (input && input.tagName === 'INPUT') {
+                input.value = value;
+            } else if (input && input.tagName === 'SELECT') {
+                input.value = value;
+            } else if (input && input.tagName === 'TEXTAREA') {
+                input.value = value;
+
+                if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[inputId]) {
+                    CKEDITOR.instances[inputId].setData(value.toString());
+                }
+            }
+        }
+
+        for (const property in data) {
+            if (typeof data[property] === 'object') {
+                for (const nestedProperty in data[property]) {
+                    bindData(`${property}_${nestedProperty}`, data[property][nestedProperty]);
+                }
+            } else {
+                bindData(property, data[property]);
+            }
+        }
+    }
+</script>
